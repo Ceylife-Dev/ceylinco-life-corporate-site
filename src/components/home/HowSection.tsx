@@ -30,9 +30,11 @@ export function HowSection() {
             </div>
             {/* Button and note share one left edge. */}
             <div className="flex flex-col items-start gap-3">
-              <Button variant="secondary" href={help.cta.href}>
-                {help.cta.label}
-              </Button>
+              <div className="self-end">
+                <Button variant="secondary" href={help.cta.href}>
+                  {help.cta.label}
+                </Button>
+              </div>
               <p className="text-sm text-ink-muted">{help.contact}</p>
             </div>
           </div>

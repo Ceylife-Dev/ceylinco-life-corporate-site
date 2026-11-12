@@ -86,8 +86,8 @@ export const home = {
     headline: "Protection for the people and the future you care about",
     support:
       "Insurance, retirement and savings plans for every stage of life, backed by a team that has stood beside Sri Lankan families for over two decades.",
-    primaryCta: { label: "Get a quote", href: links.getQuote },
-    secondaryCta: { label: "Explore plans", href: "/products" },
+    primaryCta: { label: "Explore plans", href: "/products" },
+    secondaryCta: { label: "Get a quote", href: links.getQuote },
     /** Trust row. The licence wording is as supplied; confirm with compliance. */
     trust: [
       { icon: Award, text: "20+ years of industry leadership" },
