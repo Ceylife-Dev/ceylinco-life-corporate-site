@@ -1,0 +1,423 @@
+/* Global styles. Order matters: Tailwind first, then our tokens, then base rules. */
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+/* -----------------------------------------------------------------------------
+   Small utilities for token values Tailwind has no built-in class for.
+   ----------------------------------------------------------------------------- */
+@utility duration-fast {
+  transition-duration: var(--duration-fast);
+}
+@utility duration-base {
+  transition-duration: var(--duration-base);
+}
+@utility duration-slow {
+  transition-duration: var(--duration-slow);
+}
+
+/* -----------------------------------------------------------------------------
+   Animated link underline (one reusable utility).
+   Put `link-underline` on the text itself (a span or the link's label). A line the
+   thickness of --underline-thickness grows from left to right under the text on
+   hover and keyboard focus, in the current text colour. It works across wrapped lines.
+
+     link-underline                     grows on its own hover / focus
+     group-hover:link-underline-shown   grows when a parent with `group` (a card, a nav row) is hovered
+     group-focus-visible:link-underline-shown   ...or focused
+     link-underline-shown               the full line, always (the active nav item)
+     link-line-footer                   line colour for the dark footer (footer-text)
+     link-line-inverse                  line colour on the maroon card and dark sections
+     link-rest-soft / link-rest-current a thin resting line that is always visible (text links)
+
+   Reduced motion: --underline-duration drops to ~0, so the line shows without animating.
+   ----------------------------------------------------------------------------- */
+@utility link-underline {
+  background-image:
+    linear-gradient(var(--link-line, currentColor), var(--link-line, currentColor)),
+    linear-gradient(var(--link-line-rest, transparent), var(--link-line-rest, transparent));
+  background-repeat: no-repeat;
+  background-position:
+    0 100%,
+    0 100%;
+  background-size:
+    var(--link-width, 0%) var(--underline-thickness),
+    100% var(--underline-thickness);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition: background-size var(--underline-duration) var(--ease-standard);
+
+  &:hover,
+  &:focus-visible {
+    --link-width: 100%;
+  }
+}
+@utility link-underline-shown {
+  --link-width: 100%;
+}
+
+/* -----------------------------------------------------------------------------
+   Text-link line (used by TextLink, and so by every text link on the site).
+   Put `link-line` on the link's label (a span). A 2px line (--underline-thickness) in the current text colour (or
+   --link-line) grows from the left (scaleX 0 to 1, transform-origin left) in --underline-duration (200ms, ease-out) on
+   the label's own hover and keyboard focus, and when the parent link (`group/link`) is hovered or focused
+   (`group-hover/link:link-scale-full`). Hover is wrapped in (hover: hover), so touch screens never get a stuck line.
+   A thin resting line can be kept under the text with --link-line-rest (link-rest-soft / link-rest-current).
+   Reduced motion: --underline-duration drops to ~0, so the line still appears, just at once.
+   Single-line labels only (multi-line text, such as card titles, keeps `link-underline` above).
+   ----------------------------------------------------------------------------- */
+@utility link-line {
+  position: relative;
+  display: inline-block;
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: var(--underline-thickness);
+  }
+  &::before {
+    background: var(--link-line-rest, transparent);
+  }
+  &::after {
+    background: var(--link-line, currentColor);
+    transform: scaleX(var(--link-scale, 0));
+    transform-origin: left;
+    transition: transform var(--underline-duration) var(--ease-standard);
+  }
+  @media (hover: hover) {
+    &:hover {
+      --link-scale: 1;
+    }
+  }
+  &:focus-visible,
+  &:active {
+    --link-scale: 1;
+  }
+}
+@utility link-scale-full {
+  --link-scale: 1;
+}
+@utility link-line-footer {
+  --link-line: var(--color-footer-text);
+}
+@utility link-line-inverse {
+  --link-line: var(--color-ink-on-brand);
+}
+@utility link-rest-soft {
+  --link-line-rest: var(--color-brand-tint-strong);
+}
+@utility link-rest-current {
+  --link-line-rest: currentColor;
+}
+
+/* -----------------------------------------------------------------------------
+   Hero (full-bleed photo). All values are tokens (see "Hero" in tokens.css).
+   ----------------------------------------------------------------------------- */
+@utility min-h-hero {
+  /* Fills the screen below the sticky header, but never shorter than the min or taller than the max. */
+  min-height: clamp(var(--size-hero-min), calc(100svh - var(--size-header)), var(--size-hero-max));
+  /* At 768px and below the bottom bar takes the bottom of the screen too. */
+  @media (max-width: 48rem) {
+    min-height: clamp(var(--size-hero-min), calc(100svh - var(--size-header) - var(--size-bottom-nav) - env(safe-area-inset-bottom, 0px)), var(--size-hero-max));
+  }
+}
+@utility bg-hero-scrim-mobile {
+  background-image: linear-gradient(
+    to bottom,
+    var(--color-scrim-hero-top) 0%,
+    var(--color-scrim-hero-mid) 55%,
+    var(--color-scrim-hero-clear) 78%
+  );
+}
+@utility bg-hero-scrim-desktop {
+  background-image: linear-gradient(
+    to right,
+    var(--color-scrim-hero-strong) 0%,
+    var(--color-scrim-hero-medium) 45%,
+    var(--color-scrim-hero-faint) 72%,
+    var(--color-scrim-hero-clear) 100%
+  );
+}
+/* From tablet up the trust row runs full width along the bottom, so the bottom edge gets its own soft darkening
+   (on top of the left-to-right scrim) to keep the white trust text above 4.5:1 over the bright part of the photo. */
+@utility bg-hero-scrim-bottom {
+  background-image: linear-gradient(
+    to top,
+    var(--color-scrim-hero-strong) 0%,
+    var(--color-scrim-hero-medium) 12%,
+    var(--color-scrim-hero-faint) 26%,
+    var(--color-scrim-hero-clear) 40%
+  );
+}
+/* Where each hero image is anchored: the default tokens, or the image's own focus (set per slide as --slide-position-*). */
+@utility object-hero-mobile {
+  object-position: var(--slide-position-mobile, var(--hero-position-mobile));
+}
+@utility object-hero-desktop {
+  object-position: var(--slide-position-desktop, var(--hero-position));
+}
+/* Crossfade between hero images: opacity only (--hero-fade-duration, ease-out), no movement. */
+@utility hero-fade {
+  transition: opacity var(--hero-fade-duration) var(--reveal-ease);
+}
+
+/* Soft light glow behind the cutout figure on the dark trust section. */
+@utility bg-trust-glow {
+  background-image: radial-gradient(closest-side, var(--color-trust-glow) 80%, transparent);
+}
+
+/* On a dark section the maroon focus ring would vanish (1.2:1), so the ring turns white there. */
+@utility focus-on-dark {
+  --color-focus: var(--color-ink-on-brand);
+}
+
+/* Accordion panel: grid rows animate from 0fr to 1fr, so the height changes smoothly. */
+@utility accordion-panel {
+  display: grid;
+  grid-template-rows: var(--accordion-rows, 0fr);
+  transition: grid-template-rows var(--duration-base) var(--ease-standard);
+}
+@utility accordion-panel-open {
+  --accordion-rows: 1fr;
+}
+@utility auto-rows-news {
+  grid-auto-rows: var(--size-news-row);
+}
+@utility min-h-touch {
+  min-height: var(--size-touch);
+}
+@utility min-w-touch {
+  min-width: var(--size-touch);
+}
+/* -----------------------------------------------------------------------------
+   Phones and the installed app: safe areas and the bottom bar.
+   env(safe-area-inset-*) is 0 on a normal screen and on desktop; it is the notch / home-indicator space on phones
+   (the viewport uses viewport-fit=cover). The bottom bar shows at 768px and below (48rem) in any display mode, so at those
+   widths the page and the fixed buttons are lifted above it.
+   ----------------------------------------------------------------------------- */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@utility h-bottom-nav {
+  height: var(--size-bottom-nav);
+}
+/* The floating chat button: 16px from the corner (24px from tablet up) plus the safe area, above the bottom bar at 768px and below. */
+@utility fixed-corner {
+  right: calc(var(--spacing) * 4 + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--spacing) * 4 + env(safe-area-inset-bottom, 0px));
+  @media (min-width: 48rem) {
+    right: calc(var(--spacing) * 6 + env(safe-area-inset-right, 0px));
+    bottom: calc(var(--spacing) * 6 + env(safe-area-inset-bottom, 0px));
+  }
+  @media (max-width: 48rem) {
+    bottom: calc(var(--spacing) * 4 + env(safe-area-inset-bottom, 0px) + var(--size-bottom-nav));
+  }
+}
+/* The "Add to home screen" card: bottom left, clear of the chat button on the right, above the bottom bar at 768px and below. */
+@utility fixed-install {
+  left: calc(var(--spacing) * 4 + env(safe-area-inset-left, 0px));
+  right: calc(var(--spacing) * 22 + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--spacing) * 4 + env(safe-area-inset-bottom, 0px));
+  @media (max-width: 48rem) {
+    bottom: calc(var(--spacing) * 4 + env(safe-area-inset-bottom, 0px) + var(--size-bottom-nav));
+  }
+}
+/* Page bottom padding so the bottom bar never covers the last content. */
+@media (max-width: 48rem) {
+  body {
+    padding-bottom: calc(var(--size-bottom-nav) + env(safe-area-inset-bottom, 0px));
+  }
+}
+/* Keep content out of the notch in landscape. */
+@media (display-mode: standalone) {
+  html {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+}
+
+@utility z-raised {
+  z-index: var(--z-raised);
+}
+@utility z-sticky {
+  z-index: var(--z-sticky);
+}
+@utility z-dropdown {
+  z-index: var(--z-dropdown);
+}
+@utility z-overlay {
+  z-index: var(--z-overlay);
+}
+@utility z-tooltip {
+  z-index: var(--z-tooltip);
+}
+
+/* -----------------------------------------------------------------------------
+   Base element styles
+   ----------------------------------------------------------------------------- */
+@layer base {
+  html {
+    color-scheme: light;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-surface text-ink text-base md:text-lg; /* body is 16px on phones, 18px from tablet up */
+  }
+
+  /* Headings: SemiBold or Bold. Sizes step up with the screen. */
+  h1 {
+    @apply text-2xl font-bold md:text-3xl lg:text-4xl;
+  }
+  h2 {
+    @apply text-xl font-bold md:text-2xl;
+  }
+  h3 {
+    @apply text-lg font-semibold md:text-xl;
+  }
+  h4 {
+    @apply text-base font-semibold md:text-lg;
+  }
+
+  ::selection {
+    background: var(--color-brand-tint-strong);
+    color: var(--color-ink);
+  }
+
+  /* Visible focus ring on every interactive element.
+     :where() keeps specificity at zero so a component can refine it. */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Scroll reveal (the Reveal component adds data-reveal after the page has loaded, so without JavaScript nothing is hidden).
+   Only opacity and transform change. Every value comes from the --reveal-* tokens in tokens.css.
+     hidden = waiting below the fold; shown = it has scrolled into view (plays once, never resets).
+   The hidden state has no transition (so it never fades out on its own); the shown state carries the transition.
+   --reveal-index is set by the script (the item's place among those appearing together); the delay is capped.
+   ----------------------------------------------------------------------------- */
+.reveal {
+  --reveal-delay: min(calc(var(--reveal-stagger) * var(--reveal-index, 0)), var(--reveal-stagger-max));
+}
+.reveal[data-reveal="hidden"]:not(.reveal-draw) {
+  opacity: 0;
+  transform: translateY(var(--reveal-distance));
+}
+.reveal.reveal-fade[data-reveal="hidden"]:not(.reveal-draw) {
+  transform: none; /* fade only: no movement (same specificity as the rise rule above, and later, so it wins) */
+}
+.reveal[data-reveal="shown"]:not(.reveal-draw) {
+  transition:
+    opacity var(--reveal-duration) var(--reveal-ease) var(--reveal-delay),
+    transform var(--reveal-duration) var(--reveal-ease) var(--reveal-delay);
+}
+/* A dotted connector drawn by sliding it along its clipping track (a transform, so it does not distort the dots). */
+.reveal-draw[data-reveal="hidden"] > .reveal-draw-x {
+  transform: translateX(-100%);
+}
+.reveal-draw[data-reveal="hidden"] > .reveal-draw-y {
+  transform: translateY(-100%);
+}
+.reveal-draw[data-reveal="shown"] > * {
+  transition: transform var(--reveal-line-duration) var(--reveal-ease);
+}
+
+/* The 1.5px border of the outlined call-to-action button (token --border-width-outline). */
+@utility border-outline {
+  border-width: var(--border-width-outline);
+}
+/* Store badge states (StoreBadge): colour and brightness only, no movement. The ring (outline) fades from transparent to maroon, the badge gets a
+   touch brighter on hover and a touch darker while pressed. 200ms, the standard easing (tokens), instant with reduced motion. */
+@utility transition-badge {
+  transition-property: outline-color, filter;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--ease-standard);
+}
+@utility badge-brighter {
+  filter: brightness(var(--brightness-hover));
+}
+@utility badge-pressed {
+  filter: brightness(var(--brightness-pressed));
+}
+
+/* The phone header's row: 56px in all, so 1px less than the token (the bottom border takes the last pixel). */
+@utility h-header-row {
+  height: calc(var(--size-header-mobile) - 1px);
+}
+/* The bottom of the phone menu: clear of the bottom bar (its height plus the home-indicator space) and 32px more. */
+@utility pb-above-bar {
+  padding-bottom: calc(var(--size-bottom-nav) + env(safe-area-inset-bottom, 0px) + var(--spacing) * 8);
+}
+
+/* One card of a CardCarousel: border-box, min-width 0 and never wider than the scroller, so nothing inside can push it wider.
+   Its width comes from one of the three utilities below, chosen by the breakpoint variants (see CardCarousel): one card below 600px,
+   two from 600px, three from 1025px (tokens --breakpoint-tablet and --breakpoint-wide). Each leaves the peek of the next card showing. */
+@utility carousel-card {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  min-width: 0;
+  max-width: 100%;
+}
+/* One card per view: 100vw - 2 x page padding (16px) - the peek. */
+@utility w-carousel-one {
+  width: calc(100vw - var(--spacing) * 8 - var(--carousel-peek));
+}
+/* Two per view: (the scroller's width - the peek - 2 gaps) / 2. */
+@utility w-carousel-two {
+  width: calc((100% - var(--carousel-peek) - 2 * var(--carousel-gap)) / 2);
+}
+/* Three per view: (the scroller's width - the peek - 3 gaps) / 3. */
+@utility w-carousel-three {
+  width: calc((100% - var(--carousel-peek) - 3 * var(--carousel-gap)) / 3);
+}
+@utility gap-carousel {
+  gap: var(--carousel-gap);
+}
+/* Horizontal card carousels (CardCarousel): the scrollbar is not drawn, but the carousel still scrolls with a finger, a trackpad, shift + wheel, the arrow keys and the previous / next buttons. */
+@utility scrollbar-hidden {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Hidden when the site runs as an installed app (display-mode: standalone): things that are only for getting the app, such as the store badges. */
+@media (display-mode: standalone) {
+  .hide-standalone {
+    display: none;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Review toggle: sentence case / title case (see CaseToggle.tsx and src/lib/case.ts).
+   ----------------------------------------------------------------------------- */
+/* The toggle's place: the hero's top right corner, 16px in (24px from 769px), clear of the image switcher at the bottom right. */
+.case-toggle {
+  top: calc(var(--spacing) * 4);
+  right: calc(var(--spacing) * 4 + env(safe-area-inset-right, 0px));
+}
+@media (min-width: 48.0625rem) {
+  .case-toggle {
+    top: calc(var(--spacing) * 6);
+    right: calc(var(--spacing) * 6 + env(safe-area-inset-right, 0px));
+  }
+}
+/* In title case the flagged text stays hidden until the script has applied the mode, so there is no flash of the other case.
+   The animation is a safety net: after 2 seconds the text shows anyway (for example if scripts failed). It is not an animation of the text change. */
+html[data-case-mode="title"]:not([data-case-ready]) [data-case="ui"] {
+  visibility: hidden;
+  animation: case-failsafe 0s 2s forwards;
+}
+@keyframes case-failsafe {
+  to {
+    visibility: visible;
+  }
+}

@@ -1,0 +1,303 @@
+/* =============================================================================
+   DESIGN TOKENS  -  the single source of truth for the look of the site.
+   -----------------------------------------------------------------------------
+   * This is the ONLY place raw colours, sizes, radii, shadows and timings live.
+   * Components never use raw values; they use the Tailwind utilities that these
+     tokens generate (bg-brand, rounded-control, shadow-md, text-lg ...).
+   * `@theme static` makes Tailwind (a) generate utilities from each token and
+     (b) always write every token to :root as a real CSS custom property, so
+     they also work in plain CSS:  color: var(--color-brand);
+   * `--*: initial` wipes Tailwind's built-in palette/sizes so the only things
+     available are the tokens below. If a class like `bg-red-500` does nothing,
+     that is intentional.
+   * Read docs/design-system.md for when to use each token.
+   ============================================================================= */
+
+@theme static {
+  --*: initial;
+
+  /* ---------------------------------------------------------------------------
+     COLOUR  (utility names: bg-*, text-*, border-*, ring-*, outline-*)
+     "text" in the brand palette is called `ink` here so the class reads
+     `text-ink` instead of `text-text`.
+     --------------------------------------------------------------------------- */
+
+  /* Brand maroon: primary button, active nav item, small accents. Use sparingly. */
+  --color-brand: #790011;
+  --color-brand-hover: #66000e;
+  --color-brand-pressed: #55000c;
+  --color-brand-line: #b02133; /* a lighter maroon for the thin decorative outlines behind the trust photo on the dark section (brand maroon is invisible on it); from the Figma frame */
+  --color-brand-tint: #fbeef0; /* soft pink: icon tiles, help and advisor cards, chips, hover backgrounds, the testimonials section */
+  --color-brand-tint-strong: #f4d9dd; /* pressed background, selection, card borders on pink, link resting line, the "+" accent on dark sections */
+
+  /* Text. Warm near-black, never pure black. */
+  --color-ink: #2a2a2e;
+  --color-ink-muted: #5f5b60; /* secondary text, help text, placeholders */
+  --color-ink-on-brand: #ffffff; /* text on filled brand surfaces */
+
+  /* Surfaces */
+  --color-surface: #ffffff; /* white sections, cards, panels, inputs, header */
+  --color-surface-alt: #f6f3f1; /* the alternate section background, and the hover / selected background of list items and menus */
+  --color-surface-section: #fbfaf9; /* the alternate full-width section background (how it works, testimonials, app, final call-to-action); from the Figma frame */
+  --color-surface-cream: #fffbf2; /* a warm callout fill: the slim quick-link row, the advisor card and the FAQ contact strip; from the Figma frame */
+  --color-surface-sunken: #f3f0f1; /* disabled fields, neutral tags, wells */
+
+  /* Lines */
+  --color-border: #e3e1e4; /* decorative: card edges, dividers (NOT for control boundaries) */
+  --color-border-strong: #857f86; /* control boundaries: inputs, selects, outlined buttons (3:1+) */
+
+  /* Focus ring (see base styles in globals.css) */
+  --color-focus: var(--color-brand);
+
+  /* Status. Always pair colour with an icon or words, never colour alone. */
+  --color-success: #1e6b47;
+  --color-success-tint: #e6f3ec;
+  --color-warning: #874f00;
+  --color-warning-tint: #fff2d6;
+  --color-error: #b42318;
+  --color-error-tint: #fcebe9;
+
+  /* Dim layer behind overlays (search, mobile menu). Warm grey, not black. */
+  --color-scrim: rgb(42 42 46 / 0.45);
+
+  /* Soft light glow behind the trust cutout on the dark section (surface-alt at 92%, a light neutral, never pink).
+     Measured on the maroon shirt: 1.2:1 to 2.0:1 on plain charcoal, a median of 6.6:1 (5th percentile 4.1:1) with a round glow. */
+  --color-trust-glow: rgb(246 243 241 / 0.92);
+
+  /* Hero scrim: the footer's warm near-black (#1F1D21) at different strengths, laid over the photo so white text
+     passes 4.5:1 (checked against the brightest pixel behind the text at 390, 768, 1280, 1440 and 1920px).
+     From the lg breakpoint it runs left to right: strong, medium, faint, clear at 0 / 40 / 70 / 100%.
+     Below it (the text is at the top) it runs top to bottom: top, mid, clear at 0 / 50 / 75%.
+     The first design values were 82 / 62 / 15% (desktop) and 88 / 55% (phone); they failed contrast, so they were raised.
+     If contrast fails after a photo change, raise these (not the text size). */
+  --color-scrim-hero-strong: rgb(31 29 33 / 0.9);
+  --color-scrim-hero-medium: rgb(31 29 33 / 0.8);
+  --color-scrim-hero-faint: rgb(31 29 33 / 0.3);
+  --color-scrim-hero-top: rgb(31 29 33 / 0.9);
+  --color-scrim-hero-mid: rgb(31 29 33 / 0.85);
+  --color-scrim-hero-clear: rgb(31 29 33 / 0);
+  --color-hero-control: rgb(31 29 33 / 0.65); /* the case toggle and the carousel arrows (warm near-black, never pure black). 0.35 to 0.6 failed 3:1 for the white icon over the bright grass on phones. */
+
+  /* Hover and pressed tints for outlined controls sitting on the maroon band. */
+  --color-on-brand-hover: rgb(255 255 255 / 0.12);
+  --color-on-brand-pressed: rgb(255 255 255 / 0.2);
+
+  /* Dark footer. Warm near-black (never pure black). Footer links and icons use these, not the page colours. */
+  --color-footer-bg: #1f1d21;
+  --color-footer-text: #f3f1f2; /* headings, hovered links */
+  --color-footer-muted: #b9b5ba; /* links, body text, icons */
+  --color-footer-border: rgb(255 255 255 / 0.12); /* dividers and icon outlines */
+
+  /* ---------------------------------------------------------------------------
+     TYPOGRAPHY
+     --------------------------------------------------------------------------- */
+
+  /* next/font sets --nf-* on <html> (see src/app/layout.tsx). The quoted names
+     after each var() are the fallbacks required by the brief. */
+  --font-sans:
+    var(--nf-jakarta, "Plus Jakarta Sans"), var(--nf-noto-sinhala, "Noto Sans Sinhala"),
+    var(--nf-noto-tamil, "Noto Sans Tamil"), system-ui, sans-serif;
+  --default-font-family: var(--font-sans);
+
+  /* Weights: only these four exist (font-normal / medium / semibold / bold). */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Line heights. Bumped for Sinhala and Tamil further down. */
+  --leading-body: 1.55; /* 14-18px text */
+  --leading-heading: 1.3; /* 24-32px headings */
+  --leading-display: 1.2; /* 44-56px headings */
+
+  /* Letter spacing. Negative only on large headings. */
+  --tracking-normal: 0em;
+  --tracking-heading: -0.01em; /* 32px */
+  --tracking-display: -0.02em; /* 44px and 56px */
+
+  /* Type scale in rem so it follows the visitor's browser font setting.
+     14 / 16 / 18 / 24 / 32 / 44 / 56 px at the default 16px root.
+     Each size carries its own line height and letter spacing. */
+  --text-sm: 0.875rem;
+  --text-sm--line-height: var(--leading-body);
+  --text-tab: 0.75rem; /* 12px: labels in the bottom bar only (five tabs share the width of a phone) */
+  --text-tab--line-height: 1.25;
+  --text-base: 1rem;
+  --text-base--line-height: var(--leading-body);
+  --text-lg: 1.125rem;
+  --text-lg--line-height: var(--leading-body);
+  --text-xl: 1.5rem;
+  --text-xl--line-height: var(--leading-heading);
+  --text-2xl: 2rem;
+  --text-2xl--line-height: var(--leading-heading);
+  --text-2xl--letter-spacing: var(--tracking-heading);
+  --text-3xl: 2.75rem;
+  --text-3xl--line-height: var(--leading-display);
+  --text-3xl--letter-spacing: var(--tracking-display);
+  --text-4xl: 3.5rem;
+  --text-4xl--line-height: var(--leading-display);
+  --text-4xl--letter-spacing: var(--tracking-display);
+
+  /* ---------------------------------------------------------------------------
+     SPACING  -  4px base. p-1 = 4px, p-2 = 8px, p-4 = 16px, p-6 = 24px ...
+     --------------------------------------------------------------------------- */
+  --spacing: 4px;
+  --size-touch: 44px; /* minimum tap target (min-h-touch / min-w-touch) */
+  --size-bottom-nav: 64px; /* the bottom navigation bar (phones, 768px and below), without the safe-area inset */
+
+  /* Page widths (max-w-page, max-w-prose) */
+  --container-page: 75rem; /* 1200px */
+  --container-header: 100rem; /* 1600px: the header bar is wider than the page content, so its logo and controls sit closer to the screen edges */
+  --container-prose: 42rem; /* comfortable reading line length */
+  --container-menu: 66rem; /* mega menu panel width (1056px): three columns of about 320px */
+  --container-hero: 40rem; /* hero text column, max width (640px) */
+  --container-faq: 50rem; /* the single centred FAQ column (800px) */
+  --size-news-row: 15rem; /* each of the two rows of the desktop news bento (240px) */
+  --container-hero-support: 52ch; /* hero supporting line, about 52 characters wide */
+
+  /* Hero (full-bleed photo). Its height is clamp(min, 100svh minus the header, max). */
+  --size-hero-min: 560px;
+  --size-hero-max: 880px;
+  --size-header-mobile: 56px; /* the phone header (768px and below), with its 1px bottom border; the installed app adds the top safe area */
+  --size-header: 65px; /* sticky header height on phones; 73px from the nav breakpoint (see the media query below) */
+  /* Where the photo is anchored. The family is lower right of centre (47-67% across, 62-82% down). */
+  --hero-position: 55% 75%;
+  --hero-position-mobile: 57% 80%;
+
+  /* ---------------------------------------------------------------------------
+     BREAKPOINTS  (md:  lg:  nav:  xl:)
+     `nav` is where the header switches between hamburger and full menu.
+     --------------------------------------------------------------------------- */
+  --breakpoint-sm: 40rem; /* 640px */
+  --breakpoint-md: 48rem; /* 768px  tablet */
+  --breakpoint-lg: 64rem; /* 1024px */
+  --breakpoint-bar: 48.0625rem; /* 769px: the bottom bar and the phone header actions show up to 768px and hide from here */
+  --breakpoint-bento: 56.25rem; /* 900px: the news bento becomes one column below this */
+  --breakpoint-tablet: 37.5rem; /* 600px: card carousels show two cards (and their previous / next buttons) from here; one card below */
+  --breakpoint-wide: 64.0625rem; /* 1025px: card carousels show three cards from here (two from 600px, one below); the news bento starts here */
+  --breakpoint-nav: 72rem; /* 1152px: the one-row header collapses to the hamburger below this */
+  --breakpoint-xl: 80rem; /* 1280px */
+
+  /* ---------------------------------------------------------------------------
+     RADIUS  (rounded-control, rounded-container)
+     Nested inside a card or panel => rounded-control, so curves feel concentric.
+     --------------------------------------------------------------------------- */
+  --radius-control: 12px; /* buttons, inputs, selects, tags, tooltips, nested items */
+  --radius-container: 24px; /* cards and panels */
+  --radius-badge: 6px; /* the corner of an official store badge (5 in 40 of its height, about 6px at 48px): the badge link's ring follows it */
+  --radius-full: 9999px; /* circles: step number badges, round icon tiles, the FAQ toggle, the circular card arrow, footer social icons */
+
+  /* ---------------------------------------------------------------------------
+     SHADOW  -  grey-tinted, never black.  (shadow-sm / md / lg / focus)
+     --------------------------------------------------------------------------- */
+  --shadow-sm: 0 1px 2px rgb(71 76 85 / 0.1);
+  --shadow-md: 0 4px 12px rgb(71 76 85 / 0.1);
+  --shadow-up: 0 -2px 8px rgb(71 76 85 / 0.08); /* the phone bottom bar: a soft shadow cast upwards onto the page */
+  --shadow-lg: 0 2px 6px rgb(71 76 85 / 0.06), 0 16px 40px rgb(71 76 85 / 0.1); /* mega menu panel */
+  --shadow-focus: 0 0 0 4px rgb(121 0 17 / 0.16); /* soft maroon ring on inputs */
+  --shadow-focus-error: 0 0 0 4px rgb(180 35 24 / 0.16);
+  /* Soft grey text shadow for white text over the hero photo (utility: text-shadow-hero). */
+  --text-shadow-hero: 0 2px 16px rgb(31 29 33 / 0.35);
+
+  /* ---------------------------------------------------------------------------
+     MOTION  -  soft and short. Collapses to ~0 when the visitor asks for
+     reduced motion (see the media query at the bottom of this file).
+     --------------------------------------------------------------------------- */
+  --duration-fast: 150ms; /* hover, press, colour changes */
+  --duration-base: 200ms; /* menus opening, overlays, accordion height */
+  --duration-slow: 400ms; /* longer fades (not the scroll reveal: that has its own tokens below) */
+  --underline-duration: 200ms; /* animated link underline growing left to right */
+  /* Scroll reveal (Reveal component) and count-up. One set of values for the whole site: never write them per component. */
+  --brightness-hover: 1.08; /* the store badges on hover: a touch brighter, colour only, no movement */
+  --brightness-pressed: 0.95; /* the store badges while pressed */
+  --reveal-distance: 20px; /* how far an element rises while it fades in (12px on phones, see below) */
+  --reveal-duration: 450ms;
+  --reveal-ease: cubic-bezier(0, 0, 0.2, 1); /* ease-out: no bounce, no overshoot */
+  --reveal-stagger: 70ms; /* extra delay for each item in a group that appears together */
+  --reveal-stagger-max: 400ms; /* the stagger never adds more than this, however many items there are */
+  --reveal-line-duration: 900ms; /* the dotted connector in "Getting covered" drawing from left to right */
+  --count-duration: 1200ms; /* stat numbers counting up */
+  --hero-fade-duration: 800ms; /* crossfade between hero images (uses --reveal-ease: ease-out, no movement) */
+  --hero-autoplay: 6500ms; /* how long each hero image stays before the next fades in (read by Hero.tsx) */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Thickness of the animated link underline (see the link-underline utility in globals.css). */
+  --underline-thickness: 2px;
+  --carousel-peek: 32px; /* how much of the next card shows at the edge of a card carousel */
+  --carousel-gap: 16px; /* the space between cards in a card carousel */
+  --border-width-outline: 1.5px; /* the outlined button on the maroon call-to-action card (Button strongOutline) */
+  /* Tailwind's `transition` utilities read these two: */
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-standard);
+
+  /* ---------------------------------------------------------------------------
+     Z-INDEX LAYERS  (z-raised, z-sticky, z-dropdown, z-overlay, z-tooltip)
+     Never write a number. Pick the layer.
+     --------------------------------------------------------------------------- */
+  --z-raised: 10;
+  --z-sticky: 100; /* sticky header */
+  --z-dropdown: 200; /* mega menus and popovers */
+  --z-overlay: 300; /* search overlay, mobile menu */
+  --z-tooltip: 400;
+}
+
+/* Phones (768px and below): the scroll reveal rises less. */
+@media (max-width: 48rem) {
+  :root {
+    --reveal-distance: 12px;
+  }
+}
+
+/* Phones (768px and below): a compact 56px header (plus the notch space at the top in the installed app). */
+@media (max-width: 48rem) {
+  :root {
+    --size-header: calc(var(--size-header-mobile) + env(safe-area-inset-top, 0px));
+  }
+}
+
+/* The one-row header is taller from the nav breakpoint up (72px row + 1px border). */
+@media (min-width: 72rem) {
+  :root {
+    --size-header: 73px;
+  }
+}
+
+/* =============================================================================
+   SINHALA AND TAMIL
+   Both scripts have tall marks above and below the line, so they need a little
+   more size and much more line height. Negative letter spacing breaks their
+   joined letters, so it is switched off. Applies when <html lang="si|ta">.
+   ============================================================================= */
+:root:lang(si),
+:root:lang(ta) {
+  font-size: 106.25%; /* every rem-based size grows by 6.25% (16px becomes 17px) */
+  --leading-body: 1.8;
+  --leading-heading: 1.45;
+  --leading-display: 1.35;
+  --tracking-heading: 0em;
+  --tracking-display: 0em;
+}
+
+/* =============================================================================
+   REDUCED MOTION
+   Setting the durations to ~0 turns off every token-driven transition at once.
+   ============================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0.01ms;
+    --duration-base: 0.01ms;
+    --duration-slow: 0.01ms;
+    --underline-duration: 0.01ms; /* the line still shows, it just appears at once */
+    --reveal-stagger: 0ms;
+    --reveal-distance: 0px;
+    --reveal-duration: 0.01ms;
+    --reveal-line-duration: 0.01ms;
+    --count-duration: 0.01ms;
+    --hero-fade-duration: 0.01ms;
+    --default-transition-duration: 0.01ms;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
