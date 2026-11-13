@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { site } from "@/content/site";
 import { AppLink } from "./AppLink";
 
 type StoreBadgeProps = {
@@ -26,7 +27,7 @@ export function StoreBadge({ src, width, height, label, href }: StoreBadgeProps)
   return (
     <AppLink
       href={href}
-      aria-label={label}
+      aria-label={realAddress ? `${label}, ${site.opensInNewTab}` : label}
       target={realAddress ? "_blank" : undefined}
       rel={realAddress ? "noopener" : undefined}
       className="inline-flex h-11 shrink-0 rounded-badge outline-2 outline-offset-2 outline-transparent transition-badge hover:badge-brighter hover:outline-brand focus-visible:outline-brand active:badge-pressed active:outline-brand bar:h-12"

@@ -1,11 +1,16 @@
 "use client";
 
-import Image from "next/image";
+import { getImageProps } from "next/image";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { Button, cn } from "@/components/ui";
 import { CaseToggle } from "@/components/site/CaseToggle";
-import { home } from "@/content/home";
+import { home, type HeroImage } from "@/content/home";
 import { caseProps } from "@/lib/case";
+
+/** The props for a hero image (srcset, sizes, width and height) from next/image, for the plain <img> and <source> inside <picture>. */
+const heroProps = (src: string, width: number, height: number, alt: string) => getImageProps({ src, width, height, alt, sizes: "100vw" }).props;
+const desktopProps = (image: HeroImage) => heroProps(image.src, image.width, image.height, image.alt);
+const mobileProps = (image: HeroImage) => heroProps(image.mobile?.src ?? image.src, image.mobile?.width ?? image.width, image.mobile?.height ?? image.height, image.alt);
 
 /** Adds the given slide numbers to a list, without repeating any. */
 const withSlides = (list: number[], add: number[]) => [...new Set([...list, ...add])];
@@ -155,15 +160,15 @@ export function Hero() {
       aria-labelledby="hero-heading"
       onFocus={() => reschedule.current()}
       onBlur={() => reschedule.current()}
-      className="focus-on-dark relative isolate flex min-h-hero items-stretch overflow-hidden bg-footer-bg text-ink-on-brand"
+      className="focus-on-dark relative isolate grid hero-rows min-h-hero overflow-hidden bg-footer-bg text-ink-on-brand bar:flex bar:items-stretch"
     >
-      {/* The carousel: the images, and the scrims. */}
+      {/* The carousel: the images, and the scrims. Phones: the photo area below the text block. From 769px: the whole hero. */}
       <div
         role="region"
         aria-roledescription="carousel"
         aria-label="Featured images"
         aria-live="off"
-        className="absolute inset-0"
+        className="relative col-start-1 row-start-2 min-h-hero-photo bar:absolute bar:inset-0"
       >
         {/* The images (decorative). Their own stacking context keeps the crossfade below the scrims. */}
         <div aria-hidden="true" className="absolute inset-0 isolate">
@@ -176,6 +181,7 @@ export function Hero() {
                   {
                     "--slide-position-desktop": image.focus?.desktop,
                     "--slide-position-mobile": image.focus?.mobile,
+                    "--slide-position-tablet": image.focus?.tablet,
                   } as CSSProperties
                 }
                 className={cn(
@@ -183,64 +189,78 @@ export function Hero() {
                   index === shown ? "z-raised opacity-100" : under.includes(index) ? "opacity-100" : "opacity-0",
                 )}
               >
-                <Image
-                  src={image.src}
-                  alt={image.alt}
-                  width={image.width}
-                  height={image.height}
-                  sizes="100vw"
-                  priority={index === 0}
-                  fetchPriority={index === 0 ? "high" : "low"}
-                  loading={index === 0 ? undefined : "eager"}
-                  onLoad={() => onSlideLoaded(index)}
-                  ref={(el) => {
-                    if (el?.complete && el.naturalWidth > 0) loaded.current.add(index); // already loaded before React took over
-                  }}
-                  className="absolute inset-0 size-full object-cover object-hero-mobile md:object-hero-desktop"
-                />
+                {/* Up to 599px a crop of the photo (about 1000px wide) is served; from 600px the full photo, as before. */}
+                <picture className="contents">
+                  {image.mobile && <source media="(max-width: 599px)" srcSet={mobileProps(image).srcSet} sizes="100vw" />}
+                  {/* The plain <img> in <picture> is how next/image does art direction (getImageProps). */}
+                  <img
+                    {...desktopProps(image)}
+                    alt={image.alt}
+                    // The first image loads at once with high priority; the others wait for it, then load at low priority.
+                    fetchPriority={index === 0 ? "high" : "low"}
+                    loading={index === 0 ? undefined : "eager"}
+                    onLoad={() => onSlideLoaded(index)}
+                    ref={(el) => {
+                      if (el?.complete && el.naturalWidth > 0) loaded.current.add(index); // already loaded before React took over
+                    }}
+                    className="absolute inset-0 size-full object-cover object-hero-mobile tablet:object-hero-tablet bar:object-hero-desktop"
+                  />
+                </picture>
               </div>
             ) : null,
           )}
         </div>
 
-        <div aria-hidden="true" className="absolute inset-0 bg-hero-scrim-mobile lg:bg-hero-scrim-desktop" />
-        <div aria-hidden="true" className="absolute inset-0 hidden bg-hero-scrim-bottom md:block" />
+        {/* Phones: a short fade from the near-black into the photo at its top, and a darker one at its bottom behind the trust facts (both
+            fixed: they never move or fade with the slides). From 769px the original scrims are used. */}
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 hero-fade-top bg-hero-scrim-phone-top bar:inset-0 bar:bg-hero-scrim-mobile lg:bg-hero-scrim-desktop" />
+        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 hero-fade-bottom bg-hero-scrim-phone-bottom bar:inset-0 bar:bg-hero-scrim-bottom" />
       </div>
 
       {/* Review tool: text case toggle (development, or ?review=1 only). */}
       <CaseToggle />
 
-      <div className="relative mx-auto flex w-full max-w-page flex-col px-4 pt-12 pb-110 md:px-6 md:pt-16 md:pb-16">
-        {/* The headline block sits in the middle of the free height (from tablet up); the trust row is pinned to the bottom. */}
-        <div className="md:flex md:flex-1 md:items-center">
+      {/* Phones: this wrapper disappears and its two children sit in the hero's grid (the text block in row 1, the trust facts at the bottom of
+          row 2 over the photo). From 769px it is the content column: the headline block in the middle of the free height, the trust row at the bottom. */}
+      <div className="contents bar:relative bar:mx-auto bar:flex bar:w-full bar:max-w-page bar:flex-col bar:px-6 bar:pt-16 bar:pb-16">
+        <div className="relative col-start-1 row-start-1 px-4 pt-12 pb-4 bar:static bar:flex bar:flex-1 bar:items-center bar:p-0">
           <div className="w-full max-w-hero lg:w-3/5">
             <h1
               id="hero-heading"
               {...caseProps}
-              className="text-3xl text-ink-on-brand text-shadow-hero xl:text-4xl"
+              className="text-2xl text-ink-on-brand text-shadow-hero bar:text-3xl xl:text-4xl"
             >
               {headline}
             </h1>
-            <p className="mt-4 max-w-hero-support text-lg text-footer-text">{support}</p>
+            <p className="mt-3 max-w-hero-support text-base text-footer-text bar:mt-4 bar:text-lg">{support}</p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button tone="inverse" href={primaryCta.href}>
+            {/* Phones: two equal buttons side by side while they fit (about 152px each), otherwise stacked at full width. */}
+            <div className="mt-6 grid hero-cta-grid gap-3 bar:mt-8 bar:flex bar:flex-wrap">
+              <Button tone="inverse" href={primaryCta.href} className="w-full bar:w-auto">
                 {primaryCta.label}
               </Button>
-              <Button tone="inverse" variant="secondary" href={secondaryCta.href}>
+              <Button tone="inverse" variant="secondary" href={secondaryCta.href} className="w-full bar:w-auto">
                 {secondaryCta.label}
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Full-width trust row: the three items spread across the container from xl (left-aligned below that); 64px of right
-            padding keeps the last item clear of the floating chat button. */}
-        <ul className="mt-10 flex flex-col gap-3 md:mt-8 md:flex-row md:flex-wrap md:gap-x-8 md:pr-16 xl:justify-between">
-          {trust.map(({ icon: Icon, text }) => (
-            <li key={text} className="flex items-start gap-3 text-base text-ink-on-brand">
-              <Icon aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
-              <span>{text}</span>
+        {/* Trust facts. Phones: a compact 14px strip at the bottom of the photo (16px between the facts, line-height 1.4, 24px plus the safe area below), with 72px of right padding to clear the floating chat button.
+            From 769px a full-width row (the three items spread across the container from xl, left-aligned below that, 64px of right padding). */}
+        <ul className="relative col-start-1 row-start-2 flex flex-col gap-4 self-end pr-18 pl-4 hero-strip-pad bar:static bar:mt-8 bar:flex-row bar:flex-wrap bar:gap-x-8 bar:gap-y-3 bar:self-auto bar:p-0 bar:pr-16 xl:justify-between">
+          {trust.map(({ icon: Icon, text, mobileText }) => (
+            <li key={text} className="flex items-start gap-3 text-sm leading-compact text-shadow-strip text-ink-on-brand bar:text-base bar:leading-body bar:text-shadow-none">
+              <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0 bar:size-5" />
+              {/* Phones show the shorter wording when there is one; larger screens always show the full wording. */}
+              {mobileText ? (
+                <>
+                  <span className="bar:hidden">{mobileText}</span>
+                  <span className="hidden bar:inline">{text}</span>
+                </>
+              ) : (
+                <span>{text}</span>
+              )}
             </li>
           ))}
         </ul>

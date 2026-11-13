@@ -4,15 +4,24 @@ import { Button, Card, CardCarousel, Reveal, Section } from "@/components/ui";
 import { home, type NewsItem } from "@/content/home";
 import { caseProps } from "@/lib/case";
 
-/** One story as a carousel card (phones and small tablets): a 16:9 photo, the date, then the headline (three lines at most). All cards look the same. */
+/** One story as a carousel card (phones and small tablets): a 16:9 photo, the date, then the headline (three lines at most). All cards look the same.
+ * The photo is decorative here (alt=""): the link already says what the story is, so its spoken name is just the date and the headline in the order
+ * they are shown (the visible text is part of the name, WCAG 2.5.3). */
 function NewsCard({ date, iso, headline, href, image }: NewsItem) {
   return (
-    <Card variant="interactive" href={href} padding="none" shadow="sm" press="brand" className="h-full min-w-0">
+    <Card
+      variant="interactive"
+      href={href}
+      padding="none"
+      shadow="sm"
+      press="brand"
+      className="h-full min-w-0"
+    >
       <div className="flex h-full min-w-0 flex-col p-4">
         <div className="relative aspect-16/9 overflow-hidden rounded-control">
           <Image
             src={image.src}
-            alt={image.alt}
+            alt=""
             width={640}
             height={360}
             sizes="80vw"
@@ -71,7 +80,7 @@ export function NewsSection() {
 
       {/* Up to 1024px: the shared carousel. */}
       <div className="mt-10 wide:hidden">
-        <CardCarousel label="Latest news" itemName="Story" items={newestFirst.map((item) => <NewsCard key={item.headline} {...item} />)} />
+        <CardCarousel label="Latest news stories" itemName="Story" items={newestFirst.map((item) => <NewsCard key={item.headline} {...item} />)} />
         <div className="mt-6 flex justify-center">
           <Button variant="tertiary" href={allHref} iconEnd={<ArrowRight />}>
             {allLabel}
@@ -83,13 +92,19 @@ export function NewsSection() {
       <ul className="mt-10 hidden gap-4 wide:grid bento:auto-rows-news bento:grid-cols-12 bento:gap-6">
         {featured && (
           <Reveal as="li" className="bento:col-span-7 bento:row-span-2">
-            <Card variant="interactive" href={featured.href} padding="none" shadow="sm" className="h-full">
+            <Card
+              variant="interactive"
+              href={featured.href}
+              padding="none"
+              shadow="sm"
+              className="h-full"
+            >
               <div className="relative flex h-full flex-col p-4">
                 {/* The photo takes all the remaining height on desktop (so the card fills its cell) and is 16:9 below. */}
                 <div className="relative aspect-16/9 overflow-hidden rounded-control bento:aspect-auto bento:min-h-0 bento:flex-1">
                   <Image
                     src={featured.image.src}
-                    alt={featured.image.alt}
+                    alt=""
                     fill
                     sizes="(min-width: 1024px) 640px, 100vw"
                     className="object-cover"
@@ -97,7 +112,9 @@ export function NewsSection() {
                   />
                 </div>
                 <div className="mt-4 px-1">
-                  <p className="text-sm text-ink-muted">{featured.date}</p>
+                  <time dateTime={featured.iso} className="block text-sm text-ink-muted">
+                    {featured.date}
+                  </time>
                   <h3 className="mt-2 text-xl font-semibold">
                     <span className="link-underline group-hover:link-underline-shown group-focus-visible:link-underline-shown group-active:link-underline-shown">
                       {featured.headline}
@@ -109,15 +126,21 @@ export function NewsSection() {
           </Reveal>
         )}
 
-        {small.map(({ date, headline, href, image }) => (
+        {small.map(({ date, iso, headline, href, image }) => (
           <Reveal as="li" key={headline} className="bento:col-span-5">
-            <Card variant="interactive" href={href} padding="none" shadow="sm" className="h-full">
+            <Card
+              variant="interactive"
+              href={href}
+              padding="none"
+              shadow="sm"
+              className="h-full"
+            >
               <div className="flex h-full p-4">
                 {/* The photo fills the full height of the card, about 40% wide, never narrower than 112px. */}
                 <div className="relative min-h-28 w-2/5 min-w-28 shrink-0 overflow-hidden rounded-control">
                   <Image
                     src={image.src}
-                    alt={image.alt}
+                    alt=""
                     fill
                     sizes="(min-width: 900px) 190px, 40vw"
                     className="object-cover"
@@ -126,7 +149,9 @@ export function NewsSection() {
                 </div>
                 {/* The text column stretches the card height: the date at the top, the headline below it. */}
                 <div className="flex flex-1 flex-col justify-between gap-3 py-2 pr-2 pl-5">
-                  <p className="text-sm text-ink-muted">{date}</p>
+                  <time dateTime={iso} className="text-sm text-ink-muted">
+                    {date}
+                  </time>
                   <h3 className="text-lg font-semibold">
                     <span className="link-underline group-hover:link-underline-shown group-focus-visible:link-underline-shown group-active:link-underline-shown">
                       {headline}

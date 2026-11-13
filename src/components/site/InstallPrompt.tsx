@@ -39,6 +39,8 @@ export function InstallPrompt() {
   const [repeatVisit, setRepeatVisit] = useState(false);
   const [visible, setVisible] = useState(false);
   const eventRef = useRef<BeforeInstallPromptEvent | null>(null);
+  // Where keyboard focus was before it moved into the card, so it can go back there when the card closes.
+  const cameFrom = useRef<HTMLElement | null>(null);
 
   // Count this visit once per session, and work out whether the card is allowed to show.
   useEffect(() => {
@@ -81,14 +83,26 @@ export function InstallPrompt() {
     queueMicrotask(() => setVisible(Boolean(offer) && repeatVisit));
   }, [offer, repeatVisit]);
 
+  /** The card is about to disappear: put focus back where it was (or on the page's main area), so a keyboard user is not dropped at the top. */
+  function returnFocus() {
+    const target = cameFrom.current && document.contains(cameFrom.current) ? cameFrom.current : document.getElementById("main-content");
+    cameFrom.current = null;
+    if (target) {
+      if (!target.matches("a, button, input, select, textarea, [tabindex]")) target.setAttribute("tabindex", "-1");
+      target.focus({ preventScroll: true });
+    }
+  }
+
   function dismiss() {
     safe(() => localStorage.setItem(DISMISSED_KEY, String(Date.now())), undefined);
+    if (document.activeElement && document.getElementById("install-card")?.contains(document.activeElement)) returnFocus();
     setVisible(false);
   }
 
   async function install() {
     const event = eventRef.current;
     if (!event) return;
+    if (document.getElementById("install-card")?.contains(document.activeElement)) returnFocus();
     setVisible(false);
     await event.prompt();
     const { outcome } = await event.userChoice;
@@ -101,7 +115,16 @@ export function InstallPrompt() {
 
   const { title, text, add, dismiss: dismissLabel } = pwa.install;
   return (
-    <div role="region" aria-label={title} className="fixed-install fixed z-raised nav:hidden">
+    <div
+      id="install-card"
+      role="region"
+      aria-label={title}
+      onFocus={(event) => {
+        // Remember where focus came from (only when it enters the card from outside).
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) cameFrom.current = event.relatedTarget as HTMLElement | null;
+      }}
+      className="fixed-install fixed z-raised nav:hidden"
+    >
       <Card padding="md" shadow="md">
         <div className="flex items-start gap-2">
           <div className="min-w-0 flex-1">

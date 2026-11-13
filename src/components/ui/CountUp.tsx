@@ -12,6 +12,8 @@ type CountUpProps = {
   suffix?: string;
   /** Milliseconds. Leave it out to use the site-wide --count-duration token (1200ms). */
   duration?: number;
+  /** What a screen reader says for the whole figure, for example "More than Rs. 200 billion" (the visible "Rs. 200+ billion" is split into pieces). Leave it out to read prefix, number and suffix as they are. */
+  spoken?: string;
   /** Classes for the prefix and suffix (for example a smaller size or another colour). The number keeps the parent's style. */
   affixClassName?: string;
   /** Layout only. */
@@ -39,10 +41,10 @@ function tokenDuration() {
  * - It counts once, the first time it is on screen, for --count-duration (1200ms, ease-out). With "reduce motion" on the final
  *   number is shown straight away.
  * - Screen readers read the final value only: the moving digits are hidden
- *   from them, and the final text is provided separately.
+ *   from them (aria-hidden), and the final text (or `spoken`, one string for the whole figure) is provided separately in an sr-only element.
  * - Without JavaScript the final number is simply shown.
  */
-export function CountUp({ value, prefix = "", suffix = "", duration, affixClassName, className }: CountUpProps) {
+export function CountUp({ value, prefix = "", suffix = "", duration, spoken, affixClassName, className }: CountUpProps) {
   const rootRef = useRef<HTMLSpanElement>(null);
   const numberRef = useRef<HTMLSpanElement>(null);
   const finalText = format(value);
@@ -82,11 +84,7 @@ export function CountUp({ value, prefix = "", suffix = "", duration, affixClassN
 
   return (
     <span ref={rootRef} className={cn("inline-block tabular-nums", className)}>
-      <span className="sr-only">
-        {prefix}
-        {finalText}
-        {suffix}
-      </span>
+      <span className="sr-only">{spoken ?? `${prefix}${finalText}${suffix}`}</span>
       <span aria-hidden="true">
         {prefix && <span className={affixClassName}>{prefix}</span>}
         {/* The invisible copy holds the final width; the counting number sits on top of it, right-aligned. */}

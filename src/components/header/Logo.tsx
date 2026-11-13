@@ -10,7 +10,7 @@ import { site } from "@/content/site";
  */
 export function Logo() {
   return (
-    <AppLink href="/" className="inline-flex min-h-touch shrink-0 items-center rounded-control">
+    <AppLink href="/" aria-label={site.homeLinkLabel} className="inline-flex min-h-touch shrink-0 items-center rounded-control">
       <Image
         src="/images/ceylife-logo.svg"
         alt={site.name}

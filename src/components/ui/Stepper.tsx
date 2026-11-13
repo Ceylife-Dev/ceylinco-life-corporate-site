@@ -76,12 +76,14 @@ const timelineRowTrack = "absolute top-7 right-1/8 left-1/8 hidden h-0.5 overflo
  * tiles: across on desktop, 2x2 on tablet, down the left on phones. Steps fade up one after another as they scroll
  * into view (see Reveal).
  *
- * It is a real ordered list, so screen readers announce "1 of 4" and so on. The number badge is hidden from
- * screen readers for that reason.
+ * It is a real ordered list (`role="list"` keeps the list semantics for VoiceOver when the list style is removed), so screen readers announce
+ * "list, 4 items" and "1 of 4" and so on. The numbers (the badge, and the timeline's large number) are plain `<span>`s, never headings or paragraphs, and are
+ * `aria-hidden` for that reason. Each step reads once: title (h3), then description. The icons and the dotted connector lines are decorative (`aria-hidden`).
  */
 export function Stepper({ items, columns = 4, look = "card", tile = "tint", className }: StepperProps) {
   const list = (
     <ol
+      role="list"
       className={cn(
         "relative flex flex-col",
         look === "card" ? "gap-4 md:gap-6" : "gap-8",
@@ -126,11 +128,11 @@ export function Stepper({ items, columns = 4, look = "card", tile = "tint", clas
               )}
             </span>
             <div className={look === "rows" ? "pt-1" : look === "timeline" ? "lg:max-w-60 lg:pt-2" : "pt-1 md:pt-0"}>
-              {/* The timeline's large maroon number (hidden from screen readers: the ordered list already numbers the steps). */}
+              {/* The timeline's large maroon number: a decorative <span> (hidden from screen readers: the ordered list already numbers the steps; not a heading or a paragraph). */}
               {look === "timeline" && (
-                <p aria-hidden="true" className="text-3xl leading-none font-bold text-brand tabular-nums">
+                <span aria-hidden="true" className="block text-3xl leading-none font-bold text-brand tabular-nums">
                   {index + 1}
-                </p>
+                </span>
               )}
               <h3 {...caseProps} className={cn("text-lg font-semibold md:text-lg", look === "timeline" && "mt-2")}>{item.title}</h3>
               {item.text && <p className="mt-1 text-base text-ink-muted">{item.text}</p>}

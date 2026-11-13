@@ -59,7 +59,7 @@ export function BottomNav() {
   }, []);
 
   return (
-    <nav aria-label={label} className={barClasses}>
+    <nav aria-label={label} data-inert-exempt className={barClasses}>
       <ul className="mx-auto flex h-bottom-nav max-w-prose">
         {items.map(({ label: itemLabel, href, icon: Icon, ...rest }) => {
           // While the menu is open "More" is the active item, so the current page is shown as grey.

@@ -2,7 +2,7 @@ import { cn } from "./cn";
 import { CountUp } from "./CountUp";
 import { Reveal } from "./Reveal";
 
-export type StatsStripItem = { prefix?: string; value: number; suffix?: string; label: string };
+export type StatsStripItem = { prefix?: string; value: number; suffix?: string; spoken?: string; label: string };
 
 export type StatsStripTone = "dark" | "light";
 
@@ -22,14 +22,14 @@ type StatsStripProps = {
 const toneClasses: Record<StatsStripTone, { divider: string; accent: string; number: string; affix: string; label: string }> = {
   dark: {
     divider: "border-footer-border",
-    accent: "bg-footer-muted",
+    accent: "before:bg-footer-muted",
     number: "text-ink-on-brand",
     affix: "text-brand-tint-strong",
     label: "text-footer-muted",
   },
   light: {
     divider: "border-brand-tint-strong",
-    accent: "bg-brand",
+    accent: "before:bg-brand",
     number: "text-brand",
     affix: "text-brand",
     label: "text-ink-muted",
@@ -51,7 +51,11 @@ const positionClasses = [
 
 /**
  * An open strip of proof numbers, with no boxes. Each column has a short accent line, a big number that counts up
- * (CountUp: once, final value for screen readers and reduced motion), and a muted label. The prefix and suffix
+ * (CountUp: once, final value for screen readers and reduced motion), and a muted label.
+ *
+ * Semantics: a description list. Each stat is one <div> holding a <dt> (the number) and a <dd> (its label), so a screen reader says them together,
+ * for example "250, branches island-wide" or "More than Rs. 200 billion, life fund" (`spoken` gives the whole figure as one string; the moving
+ * digits are aria-hidden). The numbers are NOT headings. The accent line is a ::before, so it is not part of the list's content. The prefix and suffix
  * ("Rs.", "+ billion") are smaller and in the accent colour.
  *
  * To switch the look: change `tone` here and use the matching Section tone around it. See WhySection.
@@ -59,20 +63,24 @@ const positionClasses = [
 export function StatsStrip({ stats, tone = "dark", className }: StatsStripProps) {
   const t = toneClasses[tone];
   return (
-    <ul className={cn("grid grid-cols-2 lg:flex", className)}>
-      {stats.map(({ prefix, value, suffix, label }, index) => (
+    <dl className={cn("grid grid-cols-2 lg:flex", className)}>
+      {stats.map(({ prefix, value, suffix, spoken, label }, index) => (
         <Reveal
-          as="li"
+          as="div"
           key={label}
-          className={cn("py-6 lg:flex-auto lg:py-2", t.divider, positionClasses[index % positionClasses.length])}
+          className={cn(
+            "py-6 before:mb-4 before:block before:h-0.75 before:w-8 lg:flex-auto lg:py-2",
+            t.accent,
+            t.divider,
+            positionClasses[index % positionClasses.length],
+          )}
         >
-          <span aria-hidden="true" className={cn("mb-4 block h-0.75 w-8", t.accent)} />
-          <p className={cn("text-3xl leading-none font-bold tabular-nums lg:whitespace-nowrap xl:text-4xl", t.number)}>
-            <CountUp value={value} prefix={prefix} suffix={suffix} affixClassName={cn("text-xl", t.affix)} />
-          </p>
-          <p className={cn("mt-3 text-base", t.label)}>{label}</p>
+          <dt className={cn("text-3xl leading-none font-bold tabular-nums lg:whitespace-nowrap xl:text-4xl", t.number)}>
+            <CountUp value={value} prefix={prefix} suffix={suffix} spoken={spoken} affixClassName={cn("text-xl", t.affix)} />
+          </dt>
+          <dd className={cn("mt-3 text-base", t.label)}>{label}</dd>
         </Reveal>
       ))}
-    </ul>
+    </dl>
   );
 }

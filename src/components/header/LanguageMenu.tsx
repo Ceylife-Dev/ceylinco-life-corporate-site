@@ -7,7 +7,8 @@ import { headerText, languages, type Language } from "@/content/navigation";
 
 /**
  * Compact language selector for the header row: a short code (EN) with a chevron.
- * Opens a small menu. Arrow keys move, Enter or Space chooses, Esc closes.
+ * Opens a small menu (Enter, Space or ArrowDown on the button) and moves focus to the current language. Arrow keys, Home and End move,
+ * Enter or Space chooses, Esc closes and returns focus to the button, and Tab moves on and closes it.
  */
 export function LanguageMenu({ value, onChange }: { value: Language; onChange: (language: Language) => void }) {
   const [open, setOpen] = useState(false);
@@ -73,15 +74,20 @@ export function LanguageMenu({ value, onChange }: { value: Language; onChange: (
       <button
         ref={buttonRef}
         type="button"
+        aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
         aria-label={`${value.code}, ${headerText.changeLanguage}`}
         onClick={() => setOpen((current) => !current)}
         onKeyDown={(event) => {
-          if (event.key === "ArrowDown" && !open) {
-            event.preventDefault();
-            setOpen(true);
+          if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+          event.preventDefault();
+          if (!open) {
+            setOpen(true); // focus moves into the menu once it is showing (see the effect above)
+            return;
           }
+          const list = items();
+          (event.key === "ArrowDown" ? list[0] : list[list.length - 1])?.focus();
         }}
         className={cn(navItemClasses("inline", false), "cursor-pointer")}
       >
@@ -97,8 +103,8 @@ export function LanguageMenu({ value, onChange }: { value: Language; onChange: (
         onKeyDown={onMenuKeyDown}
         className={cn(
           "absolute top-full right-0 z-dropdown mt-2 w-max min-w-44 rounded-container border border-border bg-surface p-2 shadow-lg",
-          "transition-[opacity,visibility] duration-base",
-          open ? "visible opacity-100" : "invisible opacity-0",
+          // Opening shows it at once (focus cannot move into a menu that is still hidden) and fades it in; closing fades it out, then hides it.
+          open ? "visible opacity-100 transition-opacity duration-base" : "invisible opacity-0 transition-[opacity,visibility] duration-base",
         )}
       >
         {languages.map((language) => {

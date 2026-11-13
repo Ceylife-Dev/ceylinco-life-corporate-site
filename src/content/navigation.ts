@@ -70,6 +70,8 @@ export const headerText = {
   payPremiumOnline: "Pay premium online",
   openMenu: "Open menu",
   closeMenu: "Close menu",
+  /** The tablet menu button keeps this name whether the menu is open or closed (aria-expanded says which). */
+  menuButton: "Menu",
   search: "Search",
   searchTitle: "Search",
   searchLabel: "What are you looking for?",

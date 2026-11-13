@@ -26,8 +26,8 @@ export const fieldControlClasses = cn(
   "block w-full min-h-12 rounded-control border border-border-strong bg-surface px-4 text-base text-ink",
   "placeholder:text-ink-muted transition",
   "enabled:hover:border-ink-muted",
-  // Focus: brand border + soft maroon ring. The transparent outline keeps a visible ring in Windows high-contrast mode.
-  "focus:border-brand focus:shadow-focus focus:outline-2 focus:outline-transparent",
+  // Focus: brand border + soft maroon ring, plus the site-wide focus ring (2px, 2px offset, --color-focus: the global :focus-visible rule in globals.css).
+  "focus:border-brand focus:shadow-focus",
   // Error
   "aria-invalid:border-error aria-invalid:focus:border-error aria-invalid:focus:shadow-focus-error",
   // Disabled

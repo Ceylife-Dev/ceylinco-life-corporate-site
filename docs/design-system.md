@@ -135,7 +135,7 @@ Shadows use warm blue-grey `rgb(71 76 85)`, never black.
 
 Every interactive element shows a 2px maroon outline, offset 2px, on keyboard
 focus (`:focus-visible`), set globally in `globals.css`. Inputs and selects use
-a maroon border plus a soft ring instead. Don't remove outlines.
+the same outline and also a maroon border plus a soft ring. Don't remove outlines.
 
 ## 9. Components
 
@@ -325,21 +325,25 @@ panel is `inert`. Open the first item by default with `defaultOpen`. Row heights
 wraps in its own column and never touches the toggle.
 
 ### CountUp
-`<CountUp value prefix suffix duration>`: a number that counts up from 0 to
+`<CountUp value prefix suffix spoken duration>`: a number that counts up from 0 to
 `value` when it scrolls into view (`--count-duration`, 1200ms, ease-out, runs once, also on phones). The prefix
 and suffix (for example `Rs. ` and `+ billion`) never move. Thousands get commas,
 digits are tabular and the final width is reserved, so the layout never shifts.
 With reduced motion on, the final number shows immediately. Screen readers read
-only the final value (the moving digits are hidden from them).
+only the final value: the moving digits are `aria-hidden` and an `sr-only` element holds the final text, or `spoken` (one string for
+the whole figure, for example "More than Rs. 200 billion" for the split "Rs. 200+ billion").
 
 ### StatsStrip
-`<StatsStrip stats tone>` with `stats = [{ prefix, value, suffix, label }]`: an open strip of proof numbers, no
+`<StatsStrip stats tone>` with `stats = [{ prefix, value, suffix, spoken, label }]`: an open strip of proof numbers, no
 boxes. Four columns with 1px vertical dividers from lg; 2 x 2 on phones with vertical and horizontal dividers.
 Each column: a 32px by 3px accent line, the number (56px from xl, 44px below, weight 700, tabular, line-height 1,
 counting up with `CountUp`, once, final value for screen readers and reduced motion), and a 16px muted label 12px
 below. The prefix and suffix ("Rs.", "+ billion") are 24px (the nearest scale size to half), on the baseline.
 On phones a long value wraps ("Rs. 200+" then "billion"); from lg it stays on one line and the columns share the
 width by content.
+Semantics: a description list (`<dl>`). Each stat is one `<div>` with a `<dt>` (the number) and a `<dd>` (the label), so a screen reader says them together
+("250, branches island-wide"; "More than Rs. 200 billion, life fund"). The numbers are not headings (no h1 to h6, no `p`). The accent line is a `::before`, so the
+list holds only the terms and descriptions.
 
 | `tone` | Section behind it | Numbers | Prefix, suffix, accent | Labels | Dividers |
 |---|---|---|---|---|---|
@@ -359,8 +363,9 @@ desktop, 2x2 on tablet (the line breaks after the second step), down the left on
 phones (the step becomes a row: tile, then text). `columns`: 4 or 3. `look`: `card`
 (each step in its own white 24px card, padding 32px, on an off-white section) or
 `plain` (no card, steps side by side), `timeline` (no cards, used in How it works: from lg four equal columns with everything centred (icon tile, LARGE maroon number instead of the small badge, title, description up to 240px) and ONE dotted line behind the tiles from the centre of the first to the centre of the last (the list's `::before`; the tiles have solid backgrounds on top); below lg the steps stack, left-aligned, with the line down the left), or `rows` (no card, the steps stacked as rows, the icon tile beside the text, joined by a dotted vertical line at every size: available, not used on the home page now). Steps fade up one
-after another with `Reveal`. It is a real ordered list; the badge is hidden from
-screen readers because the list already numbers the steps.
+after another with `Reveal`. It is a real ordered list (`<ol role="list">`, so VoiceOver keeps the list when the list style is removed; screen readers say "list, 4 items"). The numbers (the badge and the
+timeline’s large number) are plain `<span>`s, never headings or paragraphs (WAVE reports bold, large paragraph text as a "possible heading"), and are `aria-hidden` because the list
+already numbers the steps. Each step reads once: its title (h3), then its description. The icons and the dotted connectors are `aria-hidden`; nothing with text or a link is.
 
 ## 10. Site header (built from the components above)
 
@@ -451,7 +456,7 @@ accessible name is "need, product" (for example "Protect my family, life insuran
 the data file and read out through `aria-describedby`. Hover (200ms ease-out, the card does not move): a `brand-tint-strong` border and `shadow-lg`; the title underlines and the arrow nudges 4px right.
 
 **Hero** (`src/components/home/Hero.tsx`) is a full-width photo that fills the screen below the solid white sticky
-header: `min-h-hero` = clamp(560px, 100svh minus the header, 880px). The photos are `next/image` (explicit `width` and `height`, `sizes="100vw"`, `object-fit: cover`, `alt=""` because they are decorative; AVIF and WebP are enabled in
+header: `min-h-hero` = clamp(560px, 100svh minus the header, 880px). The photos are plain `<img>` inside `<picture>` with the props from `next/image`’s `getImageProps` (explicit `width` and `height`, `sizes="100vw"`, `object-fit: cover`, `alt=""` because they are decorative; AVIF and WebP are enabled in
 `next.config.ts`). **Image slideshow:** the hero is a slideshow of the four images in `public/images/Hero` (list in `home.hero.images`, each with its real `width` and `height` so nothing shifts). Each image stays 6.5 seconds (`--hero-autoplay` in `tokens.css`, read by `Hero.tsx`), then the next fades in over it for 800ms ease-out (`--hero-fade-duration`, opacity only: no sliding, scaling, zoom or bounce), and it loops three times (`LOOPS` in `Hero.tsx`), then rests on the first image. The headline, text, buttons and trust row never change. There are no controls at all: no previous / next buttons, counter, position dots, pause button, swipe or keyboard shortcuts.
 Autoplay waits (never advances) only while focus is inside the hero (read live from `document.activeElement`), while the page is hidden (`visibilitychange`) and while the hero is off screen (`IntersectionObserver`, threshold 0.1, counted as visible until it reports otherwise), and starts the 6.5 seconds again afterwards; hovering with the mouse does not pause it. The check is repeated when each timer fires, so a missed event can never let a change through while something is holding it. An image that has not loaded yet is skipped, never waited for. In development a note is logged when reduced motion keeps the slideshow on the first image. With reduced motion there is no autoplay and no crossfade: only the first image is in the page.
 The images sit in a `role="region" aria-roledescription="carousel" aria-label="Featured images"` with `aria-live="off"` while it plays (automatic changes are never announced). The first image loads at once (`priority`, `fetchPriority="high"`); once it has loaded, the other three are requested (low priority) so there is no blank frame. Next to the old image the new one fades in on top of it (the old one stays fully visible underneath, so there is no dark dip). Each image can have its own `focus` (object-position for desktop and phones) in the content file. It is anchored with `--hero-position` (55% 75%, phones 57% 80%) so the family, lower right of
@@ -465,6 +470,8 @@ outlined, the same pattern as the final call-to-action card); a trust row of sma
 text, which runs the full width of the container along the bottom of the hero (items spread with space-between from xl and left-aligned below it, with 64px of right padding to clear the chat button, wrapping; from tablet up, over a second bottom scrim, `bg-hero-scrim-bottom`) and stacks under the buttons on phones. `npm run check:hero` rebuilds the hero (EVERY slideshow image, with its own crop, and the scrim) for 390, 768, 1280, 1440 and
 1920px, finds the brightest pixel behind the headline, supporting line and trust row, and tests the text against it, Keep its image list in step with `home.hero.images`.
 Re-measure the text boxes in `scripts/check-hero-contrast.mjs` if the layout or copy changes. The images are `public/images/Hero/` (folder name with a capital H): `hero-family-sunset.jpeg` (1537 x 1023, a little soft on screens wider than about 1500px) and three PNGs (about 1700 x 900, 2.3 to 2.7 MB each, resized by `next/image`). Hero images: confirm licence before launch.
+
+**Phone hero (768px and below; 769px and up is unchanged):** a near-black hero (`footer-bg`) at least clamp(560px, 100svh minus the 56px header, the 64px bottom bar and the safe areas, 760px) tall, which only grows when its content needs more. It is a grid of two rows: row 1 holds the headline (32px), supporting line (16px) and the two buttons (equal width, side by side while each can be 152px wide, otherwise stacked) on the plain near-black; row 2 is the photo area (at least 352px tall, so the faces always have room above the trust strip) with the slider in it, a 96px eased fade from the near-black into the photo at its top and a 208px (about 29% of the hero) eased fade up to 80% near-black behind the trust facts at its bottom, fixed above the slides so contrast never changes during the crossfade (`--hero-scrim-phone-top`, `--hero-scrim-phone-bottom`, `--size-hero-*` in `tokens.css`). The fades and the text never move or fade with the slides. The trust facts are a strip at the bottom of the photo: white 14px text with a subtle shadow (`text-shadow-strip`), line-height 1.4 (`leading-compact`), 16px between the facts, a 12px icon-to-text gap with the 16px icons aligned to the first line, 16px on the left, 72px on the right (clear of the chat button) and 24px plus the bottom safe area below. Phones show the shorter `mobileText` of a fact when the content file has one (the licence fact drops "of Sri Lanka"; wording to be confirmed with compliance); larger screens always show the full `text`, as two spans toggled by CSS. Up to 599px each photo is a crop (`public/images/Hero/mobile/`, 1.12 wide to 1 high so the whole height shows, about 1000px wide at native resolution, served through `<picture>` and anchored by `focus.mobile`); from 600px the full photo with `focus.tablet`; from 769px `focus.desktop`. When a photo is added, make its crop, put it in `home.hero.images` and check that no face sits under the text, the top fade or the trust strip. `npm run check:hero` rebuilds this layout too (320, 360, 390, 430, 600 and 768px, from the measured line boxes and each case’s `photoTop`, the top of the photo area): re-measure them if the copy or layout changes.
 
 **Proof numbers** use `CountUp` (20+, 250, Rs. 200+ billion, 38,000+); the data
 holds the number, prefix and suffix separately.
@@ -625,7 +632,34 @@ the first paint and the flagged text stays hidden until the mode is applied (2 s
 - Don't add font weights other than 400, 500, 600, 700.
 - Don't use Tailwind's default width names such as `max-w-lg` or `max-w-xl`: the theme wipes them, so they produce no CSS and do nothing. Use the container tokens (`max-w-prose`, `max-w-page`, `max-w-faq`, ...) or add one.
 
-## 14. Known exceptions
+## 14. Accessibility (WCAG 2.2 AA)
+
+What is in place, so new work keeps it:
+
+- **Landmarks and structure.** A skip link ("Skip to main content") is the first focusable element and goes to `#main-content` on every page (also the offline page and the
+  404 page, `src/app/not-found.tsx`). One `<main>`, one h1 per page, headings in order. Landmarks: header, nav "Main" (desktop and the menu), nav "Mobile" (the phone
+  bottom bar), the footer ("Site footer", with its own labelled navs) and "Chat" (the floating chat button). Sections are regions named by their heading. Two landmarks
+  of the same kind never share a name (the news carousel is "Latest news stories", the section "Latest news"). `<html lang>` follows the language menu, and the language
+  names carry their own `lang`.
+- **Focus.** One ring everywhere: 2px solid `--color-focus` with a 2px offset (the `:focus-visible` rule in `globals.css`; white on dark sections via `focus-on-dark`).
+  Inputs use the same ring plus the maroon border. Nothing removes the outline without a replacement.
+- **Overlays.** The phone and tablet menu and the search dialog trap Tab, close on Esc and return focus to the button that opened them (More, the menu button, or Search).
+  While one is open the rest of the page is `inert` (not focusable, not clickable, hidden from screen readers) and does not scroll. `useFocusTrap` (header/hooks.ts)
+  does this; an element with `data-inert-exempt` stays active (the bottom bar, so "More" can close the menu).
+- **Menus.** Mega menus: Enter or Space opens, ArrowDown moves in, arrows, Home and End move, Esc closes and returns to the button, Tab moves on.
+  The language popover (`aria-haspopup="menu"`): Enter, Space, ArrowDown or ArrowUp opens it and focus lands on the current language; arrows, Home and End move,
+  Enter chooses, Esc closes and returns focus. A menu that must receive focus when it opens is made visible at once (only its opacity fades in), because focus cannot move
+  into an element that is still `visibility: hidden`.
+- **Names.** Icon-only controls have a label (IconButton requires one); decorative icons are `aria-hidden`. The logo links are "Ceylinco Life, home page". The tablet
+  menu button is always "Menu" (`aria-expanded` says whether it is open). A link that opens a new tab says so ("..., opens in a new tab": the chat button and the store
+  badges, once they have a real address). A news card link is named by its own text, the date and the headline in the order shown, so the visible text is part of the
+  name (WCAG 2.5.3); its thumbnail is decorative (`alt=""`) so the photo’s description is not repeated in the name. Dates are in `<time>`.
+- **Install card.** A labelled region that does not take focus on its own; when it closes with the keyboard, focus goes back to where it came from.
+- **Motion.** Every duration, distance and the smooth scroll are tokens that drop to about zero under `prefers-reduced-motion`; the hero slideshow does not run then.
+- **Checks.** `npm run check` covers contrast and tokens. For a full pass run Lighthouse (accessibility) and axe-core on the home page at 1440px and 390px, with the
+  phone menu, a mega menu and the search dialog open, and walk the page with the Tab key. Open items are listed in the last accessibility report.
+
+## 15. Known exceptions
 
 - The logo file contains pure black in its small lettering. It is used as
   supplied, as an agreed exception for the logo only.

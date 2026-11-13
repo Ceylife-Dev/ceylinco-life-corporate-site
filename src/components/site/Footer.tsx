@@ -17,7 +17,7 @@ export function Footer() {
     <footer aria-label="Site footer" className="bg-footer-bg text-footer-muted">
       <div className="mx-auto max-w-page px-4 pt-14 pb-28 md:px-6 md:pt-16">
         {/* The logo file has dark lettering, so it sits on a white 12px chip. The file itself is not edited or recoloured. */}
-        <AppLink href="/" className="inline-flex rounded-control bg-surface p-2 focus-visible:outline-footer-text">
+        <AppLink href="/" aria-label={site.homeLinkLabel} className="inline-flex rounded-control bg-surface p-2 focus-visible:outline-footer-text">
           <Image
             src="/images/ceylife-logo.svg"
             alt={site.name}

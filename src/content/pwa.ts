@@ -20,7 +20,7 @@ export const pwa = {
 
   /** The bottom bar (phones, 768px and below; it does not depend on the app being installed). */
   bottomNav: {
-    label: "App navigation",
+    label: "Mobile",
     items: [
       { label: "Home", href: "/", icon: House },
       { label: "Products", href: "/products", icon: LayoutGrid },

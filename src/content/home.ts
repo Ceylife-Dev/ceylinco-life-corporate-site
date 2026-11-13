@@ -66,7 +66,8 @@ export type NeedCard = {
 };
 export type Step = { title: string; text?: string; icon: LucideIcon };
 /** A proof number. The number counts up on screen; prefix and suffix stay still. */
-export type Stat = { prefix?: string; value: number; suffix?: string; label: string; note?: string };
+/** `spoken` is what a screen reader says for the number, for example "More than 20" for "20+" (the label is read right after it). */
+export type Stat = { prefix?: string; value: number; suffix?: string; spoken?: string; label: string; note?: string };
 export type InfoCard = { title: string; points: string[] };
 /** `avatar` is an optional photo path (for example "/images/avatar-nimali.jpg"): use only a real photo the customer has permitted. */
 export type Testimonial = { quote: string; name: string; descriptor: string; avatar?: string };
@@ -77,7 +78,16 @@ export type NewsItem = { date: string; iso: string; headline: string; href: stri
 export type Faq = { id: string; question: string; answer: string; icon: LucideIcon; link?: { label: string; href: string } };
 /** An official store badge, used as supplied. `badge` is the file and its own size in px (only its proportions are used). */
 /** One hero image. `focus` (optional) is the CSS object-position on desktop and on phones, so the family is not cropped out. */
-export type HeroImage = { src: string; alt: string; width: number; height: number; focus?: { desktop: string; mobile: string } };
+export type HeroImage = {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  /** A crop of the photo (1.12 wide to 1 high, the shape of the phone photo area) used up to 599px wide. */
+  mobile?: { src: string; width: number; height: number };
+  /** object-position per screen: `mobile` = the portrait crop (up to 599px), `tablet` = the full photo (600px to 768px), `desktop` = the full photo (769px and up). */
+  focus?: { desktop: string; tablet: string; mobile: string };
+};
 export type StoreLink = { name: string; ariaLabel: string; badge: { src: string; width: number; height: number }; href: string };
 
 export const home = {
@@ -88,38 +98,49 @@ export const home = {
       "Insurance, retirement and savings plans for every stage of life, backed by a team that has stood beside Sri Lankan families for over two decades.",
     primaryCta: { label: "Explore plans", href: "/products" },
     secondaryCta: { label: "Get a quote", href: links.getQuote },
-    /** Trust row. The licence wording is as supplied; confirm with compliance. */
+    /** Trust row. The licence wording is as supplied; confirm with compliance. An item may have a shorter `mobileText` for phones (768px and below). */
     trust: [
       { icon: Award, text: "20+ years of industry leadership" },
       { icon: MapPin, text: "250 branches island-wide" },
-      { icon: ShieldCheck, text: "Licensed by the Insurance Regulatory Commission of Sri Lanka" },
+      // SAMPLE: confirm with compliance. `mobileText` is the shorter wording shown up to 768px so the fact fits on one or two lines; larger screens show `text`.
+      { icon: ShieldCheck, text: "Licensed by the Insurance Regulatory Commission of Sri Lanka", mobileText: "Licensed by the Insurance Regulatory Commission" },
     ],
     // Hero images (the slideshow in Hero.tsx, 6.5 seconds each): confirm licence before launch. The first loads first. `width` and `height` are the real size of each file.
-    // They are decorative, so they have no alt text (alt is empty). `focus` is optional: where each image is anchored on phones and
-    // on larger screens (CSS object-position); without it the --hero-position tokens are used. Keep the same list in
+    // They are decorative, so they have no alt text (alt is empty). `mobile` is a crop of the photo for phones (up to 599px, about 1000px wide, made at native resolution), and `focus` is optional: where each image is anchored
+    // on phones (the crop) and on larger screens (the full photo) (CSS object-position); without it the --hero-position tokens are used. Keep the same list in
     // scripts/check-hero-contrast.mjs, which tests the hero text against every image.
     images: [
-      { src: "/images/Hero/hero-family-sunset.jpeg", alt: "", width: 1537, height: 1023 },
+      {
+        src: "/images/Hero/hero-family-sunset.jpeg",
+        alt: "",
+        width: 1537,
+        height: 1023,
+        mobile: { src: "/images/Hero/mobile/sunset-phone.jpg", width: 698, height: 623 },
+        focus: { desktop: "55% 75%", tablet: "60% 85%", mobile: "50% 100%" },
+      },
       {
         src: "/images/Hero/Golden-Hour Family Embrace 1.png",
         alt: "",
         width: 1672,
         height: 941,
-        focus: { desktop: "70% 40%", mobile: "76% 40%" },
+        mobile: { src: "/images/Hero/mobile/golden-hour-phone.jpg", width: 1054, height: 941 },
+        focus: { desktop: "70% 40%", tablet: "88% 40%", mobile: "50% 0%" },
       },
       {
         src: "/images/Hero/Joyful Family in the Sunlit Park 1.png",
         alt: "",
         width: 1774,
         height: 887,
-        focus: { desktop: "70% 40%", mobile: "64% 40%" },
+        mobile: { src: "/images/Hero/mobile/sunlit-park-phone.jpg", width: 993, height: 887 },
+        focus: { desktop: "70% 40%", tablet: "88% 40%", mobile: "50% 0%" },
       },
       {
         src: "/images/Hero/Joyful Family Soccer in the Park 1.png",
         alt: "",
         width: 1774,
         height: 887,
-        focus: { desktop: "65% 50%", mobile: "62% 50%" },
+        mobile: { src: "/images/Hero/mobile/soccer-park-phone.jpg", width: 993, height: 887 },
+        focus: { desktop: "65% 50%", tablet: "88% 50%", mobile: "50% 0%" },
       },
     ] satisfies HeroImage[],
   },
@@ -194,12 +215,12 @@ export const home = {
       alt: "A father smiling as he holds his laughing baby",
     },
     stats: [
-      { value: 20, suffix: "+", label: "years of industry leadership" },
-      { value: 250, label: "branches island-wide" },
+      { value: 20, suffix: "+", spoken: "More than 20", label: "years of industry leadership" },
+      { value: 250, spoken: "250", label: "branches island-wide" },
       // SAMPLE: confirm with Ceylinco before launch
       // Confirm the figure and the currency.
-      { prefix: "Rs. ", value: 200, suffix: "+ billion", label: "life fund" },
-      { value: 38000, suffix: "+", label: "Family Savari winners" },
+      { prefix: "Rs. ", value: 200, suffix: "+ billion", spoken: "More than Rs. 200 billion", label: "life fund" },
+      { value: 38000, suffix: "+", spoken: "More than 38,000", label: "Family Savari winners" },
     ] as Stat[], // typed as Stat[] so the optional "note" field stays available to the component
     recognition:
       "Voted Sri Lanka's most popular life insurer for the 20th consecutive year (SLIM Kantar People's Awards, 2026).",
@@ -219,7 +240,8 @@ export const home = {
       title: "Not sure where to start?",
       text: "Our advisors will help you choose the right plan, with no pressure.",
       cta: { label: "Talk to an advisor", href: "/contact" },
-      contact: "Call (011) 246 1461 or request a call back.", //   = non-breaking space: the number never splits
+      // The phone number is a tel: link whose text is its name ("Call (011) 246 1461"); the number never splits (non-breaking spaces).
+      contact: { phone: { label: "Call (011) 246 1461", href: "tel:+94112461461" }, text: "or request a call back." },
     },
   },
 

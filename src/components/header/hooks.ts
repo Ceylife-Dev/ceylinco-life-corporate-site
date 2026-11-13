@@ -17,8 +17,10 @@ export function getFocusable(container: HTMLElement): HTMLElement[] {
 }
 
 /**
- * Keeps Tab and Shift+Tab inside `ref` while `active` is true (for overlays).
- * When it turns off, focus goes back to `returnFocusRef` (or where it was).
+ * Keeps Tab and Shift+Tab inside `ref` while `active` is true (for overlays), and makes the rest of the page inert (not focusable, not
+ * clickable, hidden from screen readers) so nothing behind the overlay can be reached. An element with `data-inert-exempt` stays
+ * active (the phone bottom bar, so "More" still closes the menu). When it turns off, the page is active again and focus goes back
+ * to `returnFocusRef` (or where it was).
  */
 export function useFocusTrap(
   ref: RefObject<HTMLElement | null>,
@@ -31,6 +33,15 @@ export function useFocusTrap(
     if (!container) return;
     // Remember where focus should go back to when the overlay closes.
     const returnTarget = returnFocusRef?.current ?? (document.activeElement as HTMLElement | null);
+
+    // Everything directly in <body> that does not hold the overlay becomes inert (scripts and the development overlay are left alone).
+    const inerted: HTMLElement[] = [];
+    for (const element of Array.from(document.body.children) as HTMLElement[]) {
+      if (element.contains(container) || element.hasAttribute("data-inert-exempt") || element.tagName === "SCRIPT") continue;
+      if (element.tagName.toLowerCase().startsWith("next") || element.inert) continue;
+      element.inert = true;
+      inerted.push(element);
+    }
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key !== "Tab" || !container) return;
@@ -53,6 +64,7 @@ export function useFocusTrap(
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
+      for (const element of inerted) element.inert = false; // before focus goes back, so the button can take it
       returnTarget?.focus?.();
     };
   }, [ref, active, returnFocusRef]);

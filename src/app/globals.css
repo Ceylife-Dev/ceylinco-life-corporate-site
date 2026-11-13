@@ -119,8 +119,49 @@
   min-height: clamp(var(--size-hero-min), calc(100svh - var(--size-header)), var(--size-hero-max));
   /* At 768px and below the bottom bar takes the bottom of the screen too. */
   @media (max-width: 48rem) {
-    min-height: clamp(var(--size-hero-min), calc(100svh - var(--size-header) - var(--size-bottom-nav) - env(safe-area-inset-bottom, 0px)), var(--size-hero-max));
+    min-height: clamp(var(--size-hero-min), calc(100svh - var(--size-header) - var(--size-bottom-nav) - env(safe-area-inset-bottom, 0px)), var(--size-hero-max-mobile));
   }
+}
+/* Phone hero (768px and below): a grid of two rows, the text block (as tall as it needs) and the photo area (the rest, never shorter than
+   --size-hero-photo-min). From 769px the hero is a flex row of one full-size layer as before, so these have no effect. */
+@utility hero-rows {
+  grid-template-rows: auto 1fr;
+}
+@utility min-h-hero-photo {
+  min-height: var(--size-hero-photo-min);
+  @media (min-width: 48.0625rem) {
+    min-height: 0;
+  }
+}
+/* The phone fades: a short band at the top and at the bottom of the photo area (from 769px the scrims fill the hero instead). */
+@utility hero-fade-top {
+  height: var(--size-hero-fade);
+  @media (min-width: 48.0625rem) {
+    height: auto;
+  }
+}
+@utility hero-fade-bottom {
+  height: var(--size-hero-bottom-fade);
+  @media (min-width: 48.0625rem) {
+    height: auto;
+  }
+}
+/* The phone trust strip's bottom padding: 24px plus the bottom safe area, so the last line never sits against the bottom edge or under the bottom bar. */
+@utility hero-strip-pad {
+  padding-bottom: calc(var(--spacing) * 6 + env(safe-area-inset-bottom, 0px));
+  @media (min-width: 48.0625rem) {
+    padding-bottom: 0;
+  }
+}
+/* The two hero buttons: side by side while each is at least --size-hero-cta-min wide, otherwise stacked at full width (equal widths either way). */
+@utility hero-cta-grid {
+  grid-template-columns: repeat(auto-fit, minmax(var(--size-hero-cta-min), 1fr));
+}
+@utility bg-hero-scrim-phone-top {
+  background-image: var(--hero-scrim-phone-top);
+}
+@utility bg-hero-scrim-phone-bottom {
+  background-image: var(--hero-scrim-phone-bottom);
 }
 @utility bg-hero-scrim-mobile {
   background-image: linear-gradient(
@@ -153,6 +194,9 @@
 /* Where each hero image is anchored: the default tokens, or the image's own focus (set per slide as --slide-position-*). */
 @utility object-hero-mobile {
   object-position: var(--slide-position-mobile, var(--hero-position-mobile));
+}
+@utility object-hero-tablet {
+  object-position: var(--slide-position-tablet, var(--hero-position-tablet));
 }
 @utility object-hero-desktop {
   object-position: var(--slide-position-desktop, var(--hero-position));

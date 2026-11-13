@@ -109,6 +109,7 @@
   --leading-body: 1.55; /* 14-18px text */
   --leading-heading: 1.3; /* 24-32px headings */
   --leading-display: 1.2; /* 44-56px headings */
+  --leading-compact: 1.4; /* the three trust facts at the bottom of the phone hero */
 
   /* Letter spacing. Negative only on large headings. */
   --tracking-normal: 0em;
@@ -163,6 +164,41 @@
   /* Where the photo is anchored. The family is lower right of centre (47-67% across, 62-82% down). */
   --hero-position: 55% 75%;
   --hero-position-mobile: 57% 80%;
+  --hero-position-tablet: 80% 40%; /* the full photo between 600px and 768px (phones up to 599px use a portrait crop instead) */
+
+  /* Phone hero (768px and below): the headline, text and buttons sit at the top on the near-black hero; the photo fills the rest below them
+     (at least --size-hero-photo-min tall), with a short eased fade from the near-black into the photo at its top and a darker fade at its
+     bottom behind the three trust facts. Both fades are footer-bg (never pure black) and fixed: they never move with the slides. */
+  --size-hero-max-mobile: 760px; /* the phone hero is never made taller than this to fit the screen (it only grows when its content needs more) */
+  --size-hero-photo-min: 22rem; /* the photo area below the buttons is at least 352px tall, so the faces always have room above the trust strip */
+  --size-hero-fade: 6rem; /* the fade from near-black into the photo, at the top of the photo area (96px) */
+  --size-hero-bottom-fade: 13rem; /* the dark fade behind the trust facts, at the bottom of the photo area (208px, about 29% of the hero) */
+  --size-hero-cta-min: 9.5rem; /* the two hero buttons sit side by side while each can be at least 152px wide, otherwise they stack */
+  --hero-scrim-phone-top: linear-gradient(
+    to bottom,
+    rgb(31 29 33 / 1) 0%,
+    rgb(31 29 33 / 0.97) 10%,
+    rgb(31 29 33 / 0.896) 20%,
+    rgb(31 29 33 / 0.784) 30%,
+    rgb(31 29 33 / 0.648) 40%,
+    rgb(31 29 33 / 0.5) 50%,
+    rgb(31 29 33 / 0.352) 60%,
+    rgb(31 29 33 / 0.216) 70%,
+    rgb(31 29 33 / 0.104) 80%,
+    rgb(31 29 33 / 0.028) 90%,
+    rgb(31 29 33 / 0) 100%
+  );
+  --hero-scrim-phone-bottom: linear-gradient(
+    to top,
+    rgb(31 29 33 / 0.8) 0%,
+    rgb(31 29 33 / 0.8) 55%,
+    rgb(31 29 33 / 0.74) 66%,
+    rgb(31 29 33 / 0.6) 76%,
+    rgb(31 29 33 / 0.42) 84%,
+    rgb(31 29 33 / 0.22) 91%,
+    rgb(31 29 33 / 0.08) 96%,
+    rgb(31 29 33 / 0) 100%
+  );
 
   /* ---------------------------------------------------------------------------
      BREAKPOINTS  (md:  lg:  nav:  xl:)
@@ -198,6 +234,8 @@
   --shadow-focus-error: 0 0 0 4px rgb(180 35 24 / 0.16);
   /* Soft grey text shadow for white text over the hero photo (utility: text-shadow-hero). */
   --text-shadow-hero: 0 2px 16px rgb(31 29 33 / 0.35);
+  /* A tight, subtle shadow for the small white trust facts at the bottom of the phone hero (a safety net on top of the dark fade; utility: text-shadow-strip). */
+  --text-shadow-strip: 0 1px 2px rgb(31 29 33 / 0.4);
 
   /* ---------------------------------------------------------------------------
      MOTION  -  soft and short. Collapses to ~0 when the visitor asks for

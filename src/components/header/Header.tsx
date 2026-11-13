@@ -169,7 +169,7 @@ export function Header() {
               <IconButton
                 ref={hamburgerRef}
                 size="lg"
-                label={mobileOpen ? headerText.closeMenu : headerText.openMenu}
+                label={headerText.menuButton}
                 icon={mobileOpen ? <X /> : <Menu />}
                 aria-expanded={mobileOpen}
                 aria-controls="mobile-menu"
